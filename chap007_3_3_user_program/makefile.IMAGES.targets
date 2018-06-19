@@ -1,0 +1,12 @@
+
+link.map:output.elf
+
+# 其他工程依赖，所以不转发
+
+code.bin:output.elf
+	aarch64-elf-objcopy -j .text -O binary $^ $@
+init_ram.bin:output.elf
+	aarch64-elf-objcopy -j .data -O binary $^ $@
+
+all_bin:code.bin init_ram.bin
+	touch all_bin

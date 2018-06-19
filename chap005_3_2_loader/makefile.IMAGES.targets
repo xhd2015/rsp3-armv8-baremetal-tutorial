@@ -1,0 +1,18 @@
+
+
+link.map:output.elf
+
+# 转发到part2的构建
+$(PART2_PROJECT_BUILD)/%:FORCE
+	@echo Checking $@
+	@target=$@;\
+	target=$${target##$(PART2_PROJECT_BUILD)/};\
+	if [[ -f $(PART2_PROJECT_BUILD)/makefile ]] ; then \
+	$(MAKE) -C  $(PART2_PROJECT_BUILD) -f makefile $$target;\
+	else  \
+	echo '***ERROR*** : Please use Eclipse CDT to generate makefiles for $(PART2_PROJECT_BUILD) first';\
+		exit 1;\
+	fi
+
+output.bin:output.elf
+	aarch64-elf-objcopy -O binary output.elf $@

@@ -1,0 +1,32 @@
+# ========工程引用===========
+PART2_PROJECT := chap007_2_1_process_management
+PART2_PROJECT_ROOT := ../../$(PART2_PROJECT)
+PART2_PROJECT_BUILD := $(PART2_PROJECT_ROOT)/Debug
+
+# ========变量定义文件===========
+include $(PART2_PROJECT_BUILD)/../makefile.RASPI3_COMMON.defs
+include ../makefile.VARIABLES.defs
+
+LINKER_SCRIPT := ../ld/raspi3.ld
+
+# -march=armv8.2-a 支持UAO和PAN寄存器
+USER_CXX_FLAGS += -Wno-error=invalid-offsetof -Wno-unused-function -Wno-unused-label \
+-Wno-invalid-offsetof -Wno-comment -Wno-error=comment -Wno-error=unused-label \
+-fsigned-char -Wreorder -save-temps -pie -nostdlib -Weffc++ -Wold-style-cast \
+-fmessage-length=0 \
+-fmax-errors=5 -ffreestanding -fno-exceptions -fno-rtti
+
+USER_LINKER_FLAGS += -Xlinker -T$(LINKER_SCRIPT) -Xlinker --build-id=none \
+		-Xlinker -Map -Xlinker link.map
+
+#=======USER_OBJS======
+USER_OBJS += aux_check/1/2/3/4/$(LINKER_SCRIPT).o \
+		aux_check/1/2/3/4/$(PART2_PROJECT_BUILD)/kernel_start.txt.o \
+		aux_check/1/2/3/4/$(PART2_PROJECT_BUILD)/part2_start.txt.o \
+		aux_check/1/2/3/4/$(PART2_PROJECT_BUILD)/stack_top.txt.o
+
+#========根据导出变量自动生成=========
+USER_LINKER_FLAGS += $(foreach sym,$(EXPORT_LINKER_SYMBOLS),-Xlinker --defsym=$(sym)=$($(sym)))
+# 设置汇编符号
+USER_ASM_SYMBOLS += $(foreach sym,$(EXPORT_ASM_SYMBOLS),-Wa,--defsym -Wa,$(sym)=$($(sym)))
+

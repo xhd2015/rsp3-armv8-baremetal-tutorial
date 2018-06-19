@@ -1,0 +1,43 @@
+
+.PHONY:FORCE
+
+prepare:FORCE
+
+# 自动生成 *_FORCE目标
+%_FORCE:FORCE
+	target=$@;\
+	target=$${target%_FORCE};\
+	[[ -f $$target ]] && rm  $$target;\
+	$(MAKE) $$target
+	
+# 其他CPU默认起始地址为0，但是显式设置为0 QEMU报错
+qemu_run:
+	qemu-system-aarch64 -machine raspi3 \
+	-device loader,file=output.bin,addr=$(KERNEL_START),cpu-num=0 \
+	-device loader,addr=$(KERNEL_START),cpu-num=1 \
+	-device loader,addr=$(KERNEL_START),cpu-num=2 \
+	-device loader,addr=$(KERNEL_START),cpu-num=3 \
+	-nographic -serial mon:stdio -serial null -d int -D qemu.log
+	
+qemu_debug:
+	qemu-system-aarch64 -machine raspi3 \
+	-device loader,file=output.bin,addr=$(KERNEL_START) \
+	-device loader,addr=$(KERNEL_START),cpu-num=0 \
+	-device loader,addr=$(KERNEL_START),cpu-num=1 \
+	-device loader,addr=$(KERNEL_START),cpu-num=2 \
+	-device loader,addr=$(KERNEL_START),cpu-num=3 \
+	-nographic -serial mon:stdio -serial null -d int -D qemu.log -S -s
+
+open_terminal:
+	cygstart /usr/bin/mintty
+    
+dump_elf:
+	aarch64-elf-objdump -D output.elf|less
+dump_binary:
+	aarch64-elf-objdump -D -b binary -m aarch64 output.bin|less
+	
+# 辅助检查
+aux_check/1/2/3/4/%.o:% src/shared/empty.o
+	mkdir -p $$(dirname $@) && cp src/shared/empty.o $@
+	
+include ../makefile.IMAGES.targets

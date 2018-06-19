@@ -1,0 +1,9 @@
+LINKER_SCRIPT := ../ld/raspi3.ld
+
+USER_CXX_FLAGS += -Wno-error=invalid-offsetof -Wno-unused-function -Wno-unused-label \
+-Wno-invalid-offsetof -Wno-comment -Wno-error=comment -Wno-error=unused-label \
+-fsigned-char -Wreorder -save-temps -pie -nostdlib -Weffc++ -Wold-style-cast \
+-fmessage-length=0 \
+-fmax-errors=5 -ffreestanding -fno-exceptions -fno-rtti
+
+USER_LINKER_FLAGS += -Xlinker -T$(LINKER_SCRIPT) -Xlinker --build-id=none

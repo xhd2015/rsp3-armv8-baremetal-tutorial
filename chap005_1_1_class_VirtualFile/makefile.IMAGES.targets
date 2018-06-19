@@ -1,0 +1,49 @@
+
+# 以下两种都是对link.map依赖的错误示范
+#link.map:output.elf
+#	touch $@
+
+#link.map:output.elf
+
+# 转发到part1的构建
+# 这种转发必须以FORCE的方式进行，否则，如果part1的某个依赖文件改变了
+# ouput.bin并不能检测到这种改变
+# 因为make实际上会检查两遍，在命令执行后还会检查一遍，所以FORCE没有问题
+$(PART1_PROJECT_BUILD)/%:FORCE
+	@echo Checking $@
+	@target=$@;\
+	target=$${target##$(PART1_PROJECT_BUILD)/};\
+	if [[ -f $(PART1_PROJECT_BUILD)/makefile ]] ; then \
+	$(MAKE) -C  $(PART1_PROJECT_BUILD) -f makefile $$target;\
+	else  \
+	echo '***ERROR*** : Please use Eclipse CDT to generate makefiles for $(PART1_PROJECT_BUILD) first';\
+		exit 1;\
+	fi
+
+
+output.bin:output.elf $(PART1_PROJECT_BUILD)/output.bin
+	aarch64-elf-objcopy -O binary output.elf $@
+	cat $(PART1_PROJECT_BUILD)/output.bin >> $@
+	
+	
+export.map:output.elf
+	(cat link.map|grep -P '__part2_start|__kernel_start|__stack_top' |\
+	awk '{print $$1}'\
+	|xargs)  > $@
+part2_start.txt:export.map
+	(cat $<|cut -d ' ' -f 1) > $@
+kernel_start.txt:export.map
+	(cat $<|cut -d ' ' -f 2) > $@
+stack_top.txt:export.map
+	(cat $<|cut -d ' ' -f 3) > $@
+	
+	
+
+../include/arch/aarch64/cxx_macros.h:
+	(echo '//##======Automatically generated==========##' ;\
+	echo '#ifndef CXX_MACROS_H__'  ;\
+	echo '#define CXX_MACROS_H__'  ;\
+	echo                           ;\
+	echo -e '$(foreach macro,$(EXPORT_CXX_MACROS),constexpr size_t $(macro) = $($(macro));\n)'  ;\
+	echo '#endif // CXX_MACROS_H__'  ;\
+	) > $@

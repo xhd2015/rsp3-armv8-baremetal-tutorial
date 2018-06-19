@@ -1,0 +1,33 @@
+
+.PHONY:FORCE
+
+output.bin:output
+	aarch64-elf-objcopy -O binary $^ $@
+	
+qemu_run:
+	qemu-system-aarch64 -machine raspi3 \
+	-device loader,file=output.bin,addr=0x80000,cpu-num=0 \
+	-device loader,addr=0x80000,cpu-num=1 \
+	-device loader,addr=0x80000,cpu-num=2 \
+	-device loader,addr=0x80000,cpu-num=3 \
+	-nographic	-serial null -serial mon:stdio
+	
+qemu_debug:
+	qemu-system-aarch64 -machine raspi3 \
+	-device loader,file=output.bin,addr=0x80000,cpu-num=0 \
+	-device loader,addr=0x80000,cpu-num=1 \
+	-device loader,addr=0x80000,cpu-num=2 \
+	-device loader,addr=0x80000,cpu-num=3 \
+	-nographic	-serial null -serial mon:stdio -S -s
+
+open_terminal:
+	cygstart /usr/bin/mintty
+
+
+    
+dump_elf:
+	aarch64-elf-objdump output|less
+dump_binary:
+	aarch64-elf-objdump -D -b binary -m aarch64 output.bin|less
+	
+include ../makefile.INSTALL.targets

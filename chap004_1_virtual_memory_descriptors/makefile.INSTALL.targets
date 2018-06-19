@@ -1,0 +1,24 @@
+
+SD_ROOT := /cygdrive/e
+
+config.txt_force:FORCE
+	- rm config.txt
+	$(MAKE) config.txt
+
+config.txt:
+	(echo #kernel=putchar_miniuart.bin;\
+	echo init_uart_baud=115200; \
+	echo #4MHz,default 48MHz,;\
+	echo init_uart_clock=4000000; \
+	echo kernel_address=0x80000; \
+	echo arm64_bit=1; \
+    echo disable_commandline_tags=1; \
+    ) > $@
+   
+$(SD_ROOT)/config.txt:config.txt
+	cp $< $@
+    
+$(SD_ROOT)/kernel8.img:output.bin
+	cp $< $@
+
+install:$(SD_ROOT)/config.txt $(SD_ROOT)/kernel8.img

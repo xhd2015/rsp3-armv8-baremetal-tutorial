@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1383395716/PATH/delimiter=;
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1383395716/PATH/operation=replace
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1383395716/PATH/value=D\:\\installed\\gcc-linaro-7.2.1-2017.11-i686-mingw32_aarch64-elf\\bin;D\:\\installed\\cygwin\\bin;D\:\\installed\\qemu-x86_64\\20180412
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1383395716/append=true
+environment/project/cdt.managedbuild.config.gnu.cross.exe.debug.1383395716/appendContributed=true

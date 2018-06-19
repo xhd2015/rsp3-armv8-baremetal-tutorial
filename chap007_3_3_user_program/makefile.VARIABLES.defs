@@ -1,0 +1,12 @@
+# ========变量定义===========
+IMAGE_BASE        := 0x1000
+KERNEL_STACK_SIZE := 0x1000
+USER_STACK_SIZE   := 0x1000
+RAM_SIZE          := 0x4000 #是最大大小而不是最初的大小
+
+# ======== 导出 ===========
+EXPORT_CXX_MACROS += 
+EXPORT_ASM_SYMBOLS += 
+
+EXPORT_LINKER_SYMBOLS += IMAGE_BASE KERNEL_STACK_SIZE USER_STACK_SIZE \
+		RAM_SIZE 

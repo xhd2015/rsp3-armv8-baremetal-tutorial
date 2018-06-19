@@ -1,0 +1,18 @@
+# ========变量定义===========
+# 这些文件在读入Makefile时可能不存在，但是在构建时一定首先被依赖构建出来
+# 因此延迟加载
+IMAGE_BASE := 0
+KERNEL_START := $$(cat $(PART2_PROJECT_BUILD)/kernel_start.txt)  
+PART2_START := $$(cat $(PART2_PROJECT_BUILD)/part2_start.txt)
+PART2_STACK_TOP := $$(cat $(PART2_PROJECT_BUILD)/stack_top.txt)
+STACK_SIZE := 0x1000 #4KB
+
+# ======== 导出 ===========
+EXPORT_CXX_MACROS += GPIO_BASE UART1_BASE UART0_BASE SYS_TIMER_BASE \
+            BCM2835_INTC_BASE PERIPHBASE PERIPHEND \
+            RAM_START RAM_SIZE FREE_RAM_SIZE 
+
+EXPORT_ASM_SYMBOLS += 
+
+EXPORT_LINKER_SYMBOLS += IMAGE_BASE KERNEL_START PART2_START PART2_STACK_TOP \
+		STACK_SIZE RAM_START FREE_RAM_SIZE 

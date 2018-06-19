@@ -1,0 +1,69 @@
+
+link.map:output.elf
+
+# 转发到part1的构建
+# 这种转发必须以FORCE的方式进行，否则，如果part1的某个依赖文件改变了
+# ouput.bin并不能检测到这种改变
+# 因为make实际上会检查两遍，在命令执行后还会检查一遍，所以FORCE没有问题
+$(PART1_PROJECT_BUILD)/%:FORCE
+	@echo Checking $@
+	@target=$@;\
+	target=$${target##$(PART1_PROJECT_BUILD)/};\
+	if [[ -f $(PART1_PROJECT_BUILD)/makefile ]] ; then \
+	$(MAKE) -C  $(PART1_PROJECT_BUILD) -f makefile $$target;\
+	else  \
+	echo '***ERROR*** : Please use Eclipse CDT to generate makefiles for $(PART1_PROJECT_BUILD) first';\
+		exit 1;\
+	fi
+	
+# 转发到user_program的构建
+$(USER_PROJECT_BUILD)/%:FORCE
+	@echo Checking $@
+	@target=$@;\
+	target=$${target##$(USER_PROJECT_BUILD)/};\
+	if [[ -f $(USER_PROJECT_BUILD)/makefile ]] ; then \
+	$(MAKE) -C  $(USER_PROJECT_BUILD) -f makefile $$target;\
+	else  \
+	echo '***ERROR*** : Please use Eclipse CDT to generate makefiles for $(USER_PROJECT_BUILD) first';\
+		exit 1;\
+	fi
+
+
+output.bin:output.elf $(PART1_PROJECT_BUILD)/output.bin \
+		user_code_offset.txt  user_init_ram_offset.txt    \
+		$(USER_PROJECT_BUILD)/code.bin $(USER_PROJECT_BUILD)/init_ram.bin
+	aarch64-elf-objcopy -O binary output.elf $@
+	cat $(PART1_PROJECT_BUILD)/output.bin >> $@
+	code_size=$$(stat -c "%s" $(USER_PROJECT_BUILD)/code.bin);\
+	code_offset=$$(( $$(cat user_code_offset.txt) ));\
+	init_ram_size=$$(stat -c "%s" $(USER_PROJECT_BUILD)/init_ram.bin);\
+	init_ram_offset=$$(( $$(cat user_init_ram_offset.txt) ));\
+	dd if=$(USER_PROJECT_BUILD)/code.bin of=$@ bs=1 count=$$code_size seek=$$code_offset conv=notrunc;\
+	dd if=$(USER_PROJECT_BUILD)/init_ram.bin of=$@ bs=1 count=$$init_ram_size seek=$$init_ram_offset conv=notrunc;
+	
+	
+export.map:link.map
+	(cat $<|grep -P '__part2_start|__kernel_start|__user_code_offset|__user_init_ram_offset|__stack_top' |\
+	awk '{print $$1}'\
+	|xargs)  > $@
+part2_start.txt:export.map
+	(cat $<|cut -d ' ' -f 1) > $@
+kernel_start.txt:export.map
+	(cat $<|cut -d ' ' -f 2) > $@
+user_code_offset.txt:export.map
+	(cat $<|cut -d ' ' -f 3) > $@
+user_init_ram_offset.txt:export.map
+	(cat $<|cut -d ' ' -f 4) > $@
+stack_top.txt:export.map
+	(cat $<|cut -d ' ' -f 5) > $@
+	
+	
+
+../include/arch/aarch64/cxx_macros.h:
+	(echo '//##======Automatically generated==========##' ;\
+	echo '#ifndef CXX_MACROS_H__'  ;\
+	echo '#define CXX_MACROS_H__'  ;\
+	echo                           ;\
+	echo -e '$(foreach macro,$(EXPORT_CXX_MACROS),constexpr size_t $(macro) = $($(macro));\n)'  ;\
+	echo '#endif // CXX_MACROS_H__'  ;\
+	) > $@
